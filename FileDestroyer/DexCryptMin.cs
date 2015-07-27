@@ -2,17 +2,17 @@
 *   Copyright (C) 2011, Dextrey (0xDEADDEAD)
 * LINK: http://www.hackforums.net/showthread.php?tid=1481595
 */
+
 using System;
-using System.Collections.Generic;
 using System.Text;
 
-class DexCryptMin
+internal class DexCryptMin
 {
-
     public static string Encrypt(string plain, string key)
     {
         return Convert.ToBase64String(Encrypt(UnicodeEncoding.UTF8.GetBytes(plain), UnicodeEncoding.UTF8.GetBytes(key)));
     }
+
     public static string Decrypt(string plain, string key)
     {
         return UnicodeEncoding.UTF8.GetString(Decrypt(Convert.FromBase64String(plain), UnicodeEncoding.UTF8.GetBytes(key)));
@@ -48,6 +48,7 @@ class DexCryptMin
 
         return wholeState;
     }
+
     /// <summary>
     /// Performs DexCryptMin key expansion algorithm on variable length input key
     /// </summary>
@@ -63,7 +64,7 @@ class DexCryptMin
         // init round (fill all remaining bytes)
         for (int i = key.Length; i < length; i++)
         {
-            // x[i] = ((k[i - len(k)) % len(k)] + x[i - 1]) % 256 
+            // x[i] = ((k[i - len(k)) % len(k)] + x[i - 1]) % 256
             result[i] = (byte)((key[(i - key.Length) % key.Length] ^ (result[i - 1])) % 256);
         }
         // main rounds (process all bytes)

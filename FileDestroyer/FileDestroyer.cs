@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.IO;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace FileDestroyer
 {
@@ -51,11 +51,10 @@ namespace FileDestroyer
                     lvi.SubItems.Add(path);
                     listView1.Items.Add(lvi);
                     i++;
-                } 
+                }
             }
-
         }
-       
+
         private void trashSelectedItemToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (
@@ -63,7 +62,6 @@ namespace FileDestroyer
                     "Are you sure you want to do this you will never get this file back again!", "Are you sure?",
                     MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-               
                 foreach (ListViewItem lvi in listView1.SelectedItems)
                 {
                     string path = lvi.SubItems[2].Text;
@@ -82,14 +80,13 @@ namespace FileDestroyer
                     "Are you sure you want to do this you will never get this file back again!", "Are you sure?",
                     MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-               
                 foreach (ListViewItem lvi in listView1.Items)
                 {
                     string path = lvi.SubItems[2].Text;
-                    
+
                     Thread t = new Thread(() => trashFile(path));
                     t.Start();
-                   //trashFile(path);
+                    //trashFile(path);
                     lvi.Remove();
                 }
 
@@ -136,7 +133,7 @@ namespace FileDestroyer
 
         private void button2_Click(object sender, EventArgs e)
         {
-          trashQueue();
+            trashQueue();
         }
 
         private void button3_Click(object sender, EventArgs e)
