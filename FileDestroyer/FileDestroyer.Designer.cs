@@ -39,6 +39,11 @@
             this.encryptFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.decryptFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripTextBox1 = new System.Windows.Forms.ToolStripTextBox();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.setPasskeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.useRandomKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.label6 = new System.Windows.Forms.Label();
@@ -52,11 +57,6 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.setPasskeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripTextBox1 = new System.Windows.Forms.ToolStripTextBox();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.useRandomKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -137,6 +137,42 @@
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(173, 6);
+            // 
+            // settingsToolStripMenuItem
+            // 
+            this.settingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripTextBox1,
+            this.toolStripSeparator2,
+            this.setPasskeyToolStripMenuItem,
+            this.useRandomKeyToolStripMenuItem});
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.settingsToolStripMenuItem.Text = "S&ettings";
+            // 
+            // toolStripTextBox1
+            // 
+            this.toolStripTextBox1.Name = "toolStripTextBox1";
+            this.toolStripTextBox1.Size = new System.Drawing.Size(100, 23);
+            this.toolStripTextBox1.Text = "change this pass";
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(160, 6);
+            // 
+            // setPasskeyToolStripMenuItem
+            // 
+            this.setPasskeyToolStripMenuItem.Name = "setPasskeyToolStripMenuItem";
+            this.setPasskeyToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
+            this.setPasskeyToolStripMenuItem.Text = "Set passkey";
+            this.setPasskeyToolStripMenuItem.Click += new System.EventHandler(this.setPasskeyToolStripMenuItem_Click);
+            // 
+            // useRandomKeyToolStripMenuItem
+            // 
+            this.useRandomKeyToolStripMenuItem.Name = "useRandomKeyToolStripMenuItem";
+            this.useRandomKeyToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
+            this.useRandomKeyToolStripMenuItem.Text = "Use Random Key";
+            this.useRandomKeyToolStripMenuItem.Click += new System.EventHandler(this.useRandomKeyToolStripMenuItem_Click);
             // 
             // groupBox1
             // 
@@ -240,7 +276,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(158, 36);
+            this.label4.Location = new System.Drawing.Point(153, 37);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(32, 20);
             this.label4.TabIndex = 3;
@@ -250,7 +286,7 @@
             // 
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(6, 36);
+            this.label5.Location = new System.Drawing.Point(6, 37);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(147, 20);
             this.label5.TabIndex = 2;
@@ -275,42 +311,6 @@
             this.label2.Size = new System.Drawing.Size(108, 20);
             this.label2.TabIndex = 0;
             this.label2.Text = "CPU USAGE:";
-            // 
-            // settingsToolStripMenuItem
-            // 
-            this.settingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripTextBox1,
-            this.toolStripSeparator2,
-            this.setPasskeyToolStripMenuItem,
-            this.useRandomKeyToolStripMenuItem});
-            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
-            this.settingsToolStripMenuItem.Text = "S&ettings";
-            // 
-            // setPasskeyToolStripMenuItem
-            // 
-            this.setPasskeyToolStripMenuItem.Name = "setPasskeyToolStripMenuItem";
-            this.setPasskeyToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
-            this.setPasskeyToolStripMenuItem.Text = "Set passkey";
-            this.setPasskeyToolStripMenuItem.Click += new System.EventHandler(this.setPasskeyToolStripMenuItem_Click);
-            // 
-            // toolStripTextBox1
-            // 
-            this.toolStripTextBox1.Name = "toolStripTextBox1";
-            this.toolStripTextBox1.Size = new System.Drawing.Size(100, 23);
-            this.toolStripTextBox1.Text = "change this pass";
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(157, 6);
-            // 
-            // useRandomKeyToolStripMenuItem
-            // 
-            this.useRandomKeyToolStripMenuItem.Name = "useRandomKeyToolStripMenuItem";
-            this.useRandomKeyToolStripMenuItem.Size = new System.Drawing.Size(163, 22);
-            this.useRandomKeyToolStripMenuItem.Text = "Use Random Key";
-            this.useRandomKeyToolStripMenuItem.Click += new System.EventHandler(this.useRandomKeyToolStripMenuItem_Click);
             // 
             // FileDestroyer
             // 

@@ -1,137 +1,49 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
-using System.Diagnostics;
-using System.Drawing;
-using ThreadState = System.Threading.ThreadState;
 
 namespace FileDestroyer
 {
     public partial class FileDestroyer : Form
     {
-        private PerformanceCounter pc;
-        private Thread dThread;
-        private byte[] key; 
-        delegate void SetCpuUsageCallback(string usage);
+        private readonly Thread dThread;
+        private readonly PerformanceCounter pc;
+        private byte[] key;
+
         public FileDestroyer()
         {
             InitializeComponent();
             textBox1.Text = Environment.CurrentDirectory.Replace("\\", "/") + "/";
             pc = new PerformanceCounter("Processor Information", "% Processor Time", "_Total");
-            dThread = new Thread(new ThreadStart(this.cpuUsage));
+            dThread = new Thread(cpuUsage);
             dThread.Start();
-            this.FormClosing += new FormClosingEventHandler(gen);
-            
-
-        }
-
-        private void gen(object sender, FormClosingEventArgs e)
-        {
-           dThread.Abort();
+            FormClosing += closing;
         }
 
         /// <summary>
-        /// Credits to http://stackoverflow.com/questions/472906/converting-a-string-to-byte-array-without-using-an-encoding-byte-by-byte
+        ///     load file  button click event
         /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        private byte[] GetBytes(string str)
-        {
-            byte[] bytes = new byte[str.Length * sizeof(char)];
-            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
-            return bytes;
-        }
-        string GetString(byte[] bytes)
-        {
-            char[] chars = new char[bytes.Length / sizeof(char)];
-            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
-            return new string(chars);
-        }
-
-        private void cpuUsage()
-        {
-            while (true)
-            {
-                Thread.Sleep(975);
-                string u = pc.NextValue().ToString("####");
-                this.SetCpuUsage(u);
-            }
-           
-        }
-
-        private void SetCpuUsage(string usage)
-        {
-            if (this.label3.InvokeRequired)
-            {
-                SetCpuUsageCallback scu = new SetCpuUsageCallback(SetCpuUsage);
-                this.Invoke(scu, new object[] {usage});
-            }
-            else
-            {
-                label3.Text = usage + "%";
-                string sLen = GC.GetTotalMemory(false).ToString();
-
-                if (GC.GetTotalMemory(true) >= (1 << 30))
-                {
-                    sLen = string.Format("{0} GB", GC.GetTotalMemory(true) >> 30);
-                }
-                else if (GC.GetTotalMemory(true) >= (1 << 20))
-                {
-                    sLen = string.Format("{0} MB", GC.GetTotalMemory(true) >> 20);
-                }
-                else if (GC.GetTotalMemory(true) >= (1 << 10))
-                {
-                    sLen = string.Format("{0} KB", GC.GetTotalMemory(true) >> 10);
-                }
-                else
-                {
-                    sLen = string.Format("{0} KB", GC.GetTotalMemory(true) >> 10);
-                }
-                label4.Text = sLen;
-            }
-            try
-            {
-                int val = int.Parse(usage);
-
-                if (val >= 80)
-                {
-                    label3.ForeColor = Color.Red;
-                }
-               else if (val >= 40)
-                {
-                    label3.ForeColor = Color.Coral;
-                }
-               else
-                {
-                    label3.ForeColor = Color.Green;
-                }
-
-            }
-            catch (Exception e)
-            {
-              
-            }
-          
-            
-        
-        }
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button1_Click(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
+            var ofd = new OpenFileDialog();
             ofd.Multiselect = true;
             ofd.Filter = "All files *.*|*.*";
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                int i = 0;
-                foreach (string f in ofd.FileNames)
+                var i = 0;
+                foreach (var f in ofd.FileNames)
                 {
-                    string path = f;
+                    var path = f;
 
-                    FileInfo fi = new FileInfo(path);
-                    ListViewItem lvi = new ListViewItem(ofd.SafeFileNames[i]);
-                    string sLen = fi.Length.ToString();
+                    var fi = new FileInfo(path);
+                    var lvi = new ListViewItem(ofd.SafeFileNames[i]);
+                    var sLen = fi.Length.ToString();
 
                     if (fi.Length >= (1 << 30))
                     {
@@ -158,80 +70,209 @@ namespace FileDestroyer
             }
         }
 
-        private void trashSelectedItemToolStripMenuItem_Click(object sender, EventArgs e)
+        /// <summary>
+        ///     clear queue button click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button2_Click(object sender, EventArgs e)
+        {
+            trashQueue();
+        }
+
+        /// <summary>
+        ///     clear queue button click event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button3_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem lvi in listView1.Items)
+            {
+                lvi.Remove();
+            }
+        }
+
+        /// <summary>
+        ///     Form closing event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void closing(object sender, FormClosingEventArgs e)
+        {
+            dThread.Abort();
+        }
+
+        /// <summary>
+        ///     our safe background thread
+        /// </summary>
+        private void cpuUsage()
+        {
+            while (true)
+            {
+                Thread.Sleep(975);
+                var u = pc.NextValue().ToString("####");
+                SetCpuUsage(u);
+            }
+        }
+
+        /// <summary>
+        ///     decrypt file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void decryptFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (listView1.SelectedItems.Count == 0)
             {
                 MessageBox.Show("No files selected!");
                 return;
             }
-            int i = 0;
-            if (
-                MessageBox.Show(
-                    "Are you sure you want to do this you will never get this file back again!", "Are you sure?",
-                    MessageBoxButtons.YesNo) == DialogResult.Yes)
+            var i = 0;
+
+            var threads = new Thread[listView1.SelectedItems.Count];
+            foreach (ListViewItem lvi in listView1.SelectedItems)
             {
-                Thread[] threads = new Thread[listView1.SelectedItems.Count];
-                foreach (ListViewItem lvi in listView1.SelectedItems)
-                {
-                    string path = lvi.SubItems[2].Text;
-                    textBox1.Text = path;
-                    Thread t = new Thread(() => trashFile(path));
-                    threads[i] = t;
-                    t.Start();
-                    lvi.Remove();
-                    i++;
-                }
+                var path = lvi.SubItems[2].Text;
+                textBox1.Text = path;
+                var t = new Thread(() => dencFile(path));
+                threads[i] = t;
+                t.Start();
+                lvi.BackColor = Color.Aquamarine;
+                i++;
             }
         }
 
-        private void trashQueue()
+        /// <summary>
+        ///     decrypt file
+        /// </summary>
+        /// <param name="path"></param>
+        private void dencFile(string path)
         {
-            int count = listView1.Items.Count;
-            if (count == 0)
+            var dncB = DexCryptMin.Decrypt(File.ReadAllBytes(path), key);
+            File.WriteAllBytes(path, dncB);
+        }
+
+        /// <summary>
+        ///     encrypt file
+        /// </summary>
+        /// <param name="path"></param>
+        private void encFile(string path)
+        {
+            var encB = DexCryptMin.Encrypt(File.ReadAllBytes(path), key);
+            File.WriteAllBytes(path, encB);
+        }
+
+        /// <summary>
+        ///     encrypt file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void encryptFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count == 0)
             {
-                MessageBox.Show("No files in the queue!");
+                MessageBox.Show("No files selected!");
                 return;
             }
+            var i = 0;
 
-            Thread[] threads = new Thread[count];
-
-            if (
-                MessageBox.Show(
-                    "Are you sure you want to do this you will never get this file back again!", "Are you sure?",
-                    MessageBoxButtons.YesNo) == DialogResult.Yes)
+            var threads = new Thread[listView1.SelectedItems.Count];
+            foreach (ListViewItem lvi in listView1.SelectedItems)
             {
-                int i = 0;
-                foreach (ListViewItem lvi in listView1.Items)
-                {
-                    string path = lvi.SubItems[2].Text;
-                    textBox1.Text = path;
-                    Thread t = new Thread(() => trashFile(path));
-                    threads[i] = t;
-                    t.Start();
-                    lvi.Remove();
-                    i++;
-
-                }
-                int removed = 0;
-                foreach (Thread myThread in threads)
-                {
-
-                    if (!myThread.IsAlive)
-                    {
-                        removed++;
-                    }
-                }
-
-                if (removed == count)
-                {
-                    MessageBox.Show("All files removed successfully!");
-                    GC.Collect();
-                }
-                
+                var path = lvi.SubItems[2].Text;
+                textBox1.Text = path;
+                var t = new Thread(() => encFile(path));
+                threads[i] = t;
+                t.Start();
+                lvi.BackColor = Color.IndianRed;
+                i++;
             }
         }
 
+        /// <summary>
+        ///     Credits to
+        ///     http://stackoverflow.com/questions/472906/converting-a-string-to-byte-array-without-using-an-encoding-byte-by-byte
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        private byte[] GetBytes(string str)
+        {
+            var bytes = new byte[str.Length*sizeof (char)];
+            Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
+        /// <summary>
+        ///     our safe invoke method from ram and cpu
+        /// </summary>
+        /// <param name="usage"></param>
+        private void SetCpuUsage(string usage)
+        {
+            if (label3.InvokeRequired)
+            {
+                SetCpuUsageCallback scu = SetCpuUsage;
+                Invoke(scu, usage);
+            }
+            else
+            {
+                label3.Text = usage + "%";
+                var sLen = GC.GetTotalMemory(false).ToString();
+
+                if (GC.GetTotalMemory(true) >= (1 << 30))
+                {
+                    sLen = string.Format("{0} GB", GC.GetTotalMemory(true) >> 30);
+                }
+                else if (GC.GetTotalMemory(true) >= (1 << 20))
+                {
+                    sLen = string.Format("{0} MB", GC.GetTotalMemory(true) >> 20);
+                }
+                else if (GC.GetTotalMemory(true) >= (1 << 10))
+                {
+                    sLen = string.Format("{0} KB", GC.GetTotalMemory(true) >> 10);
+                }
+                else
+                {
+                    sLen = string.Format("{0} KB", GC.GetTotalMemory(true) >> 10);
+                }
+                label4.Text = sLen;
+            }
+            try
+            {
+                var val = int.Parse(usage);
+
+                if (val >= 80)
+                {
+                    label3.ForeColor = Color.Red;
+                }
+                else if (val >= 40)
+                {
+                    label3.ForeColor = Color.Coral;
+                }
+                else
+                {
+                    label3.ForeColor = Color.Green;
+                }
+            }
+            catch (Exception e)
+            {
+            }
+        }
+
+        /// <summary>
+        ///     set pass
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void setPasskeyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            key = GetBytes(toolStripTextBox1.Text);
+        }
+
+        /// <summary>
+        ///     trash a single file
+        /// </summary>
+        /// <param name="filePath"></param>
         private void trashFile(string filePath)
         {
             try
@@ -241,18 +282,11 @@ namespace FileDestroyer
                     MessageBox.Show("File does not exist!");
                     return;
                 }
-                FileInfo fi = new FileInfo(filePath);
-                /* Removed 7/27/2015
-                byte[] tempFile = File.ReadAllBytes(filePath);
-                byte[] newData = new byte[tempFile.Length];*/
-                byte[] newData = new byte[fi.Length];
-              /* 
-              Random r = new Random();
-                byte[] secureKey = new byte[256];
-                r.NextBytes(secureKey);
-                tempFile = DexCryptMin.Encrypt(tempFile, secureKey);*/
+                var fi = new FileInfo(filePath);
 
-                for (int i = 0; i < newData.Length; i++)
+                var newData = new byte[fi.Length];
+
+                for (var i = 0; i < newData.Length; i++)
                 {
                     newData[i] = 0x0;
                 }
@@ -272,88 +306,97 @@ namespace FileDestroyer
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        /// <summary>
+        ///     empty the queue
+        /// </summary>
+        private void trashQueue()
         {
-            trashQueue();
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            foreach (ListViewItem lvi in listView1.Items)
+            var count = listView1.Items.Count;
+            if (count == 0)
             {
-                lvi.Remove();
-            }
-        }
-
-
-        private void encryptFileToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (listView1.SelectedItems.Count == 0)
-            {
-                MessageBox.Show("No files selected!");
+                MessageBox.Show("No files in the queue!");
                 return;
             }
-            int i = 0;
-            
-                Thread[] threads = new Thread[listView1.SelectedItems.Count];
-                foreach (ListViewItem lvi in listView1.SelectedItems)
+
+            var threads = new Thread[count];
+
+            if (
+                MessageBox.Show(
+                    "Are you sure you want to do this you will never get this file back again!", "Are you sure?",
+                    MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                var i = 0;
+                foreach (ListViewItem lvi in listView1.Items)
                 {
-                    string path = lvi.SubItems[2].Text;
+                    var path = lvi.SubItems[2].Text;
                     textBox1.Text = path;
-                    Thread t = new Thread(() => encFile(path));
+                    var t = new Thread(() => trashFile(path));
                     threads[i] = t;
                     t.Start();
-                    lvi.BackColor = Color.IndianRed;
+                    lvi.Remove();
                     i++;
                 }
-            
+                var removed = 0;
+                foreach (var myThread in threads)
+                {
+                    if (!myThread.IsAlive)
+                    {
+                        removed++;
+                    }
+                }
+
+                if (removed == count)
+                {
+                    MessageBox.Show("All files removed successfully!");
+                    GC.Collect();
+                }
+            }
         }
 
-        private void decryptFileToolStripMenuItem_Click(object sender, EventArgs e)
+        /// <summary>
+        ///     rightclick  menu
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void trashSelectedItemToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (listView1.SelectedItems.Count == 0)
             {
                 MessageBox.Show("No files selected!");
                 return;
             }
-            int i = 0;
-
-            Thread[] threads = new Thread[listView1.SelectedItems.Count];
-            foreach (ListViewItem lvi in listView1.SelectedItems)
+            var i = 0;
+            if (
+                MessageBox.Show(
+                    "Are you sure you want to do this you will never get this file back again!", "Are you sure?",
+                    MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                string path = lvi.SubItems[2].Text;
-                textBox1.Text = path;
-                Thread t = new Thread(() => dencFile(path));
-                threads[i] = t;
-                t.Start();
-                lvi.BackColor = Color.Aquamarine;
-                i++;
+                var threads = new Thread[listView1.SelectedItems.Count];
+                foreach (ListViewItem lvi in listView1.SelectedItems)
+                {
+                    var path = lvi.SubItems[2].Text;
+                    textBox1.Text = path;
+                    var t = new Thread(() => trashFile(path));
+                    threads[i] = t;
+                    t.Start();
+                    lvi.Remove();
+                    i++;
+                }
             }
-
         }
 
-        private void setPasskeyToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            key = GetBytes(toolStripTextBox1.Text);
-        }
-
-        private void encFile(string path)
-        {
-            byte[] encB = DexCryptMin.Encrypt(File.ReadAllBytes(path), key);
-            File.WriteAllBytes(path,encB);
-        }
-
-        private void dencFile(string path)
-        {
-            byte[] dncB = DexCryptMin.Decrypt(File.ReadAllBytes(path), key);
-            File.WriteAllBytes(path, dncB);
-        }
-
+        /// <summary>
+        ///     random keygen
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void useRandomKeyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             key = new byte[256];
-            Random r = new Random();
+            var r = new Random();
             r.NextBytes(key);
         }
+
+        private delegate void SetCpuUsageCallback(string usage);
     }
 }
